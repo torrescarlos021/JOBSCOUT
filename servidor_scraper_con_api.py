@@ -4,14 +4,11 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 
-# --- CONFIGURACIÓN DEL SERVIDOR ---
 app = Flask(__name__)
 CORS(app)
 
-# --- CAMBIO 1: Nueva Clave API de ScrapingBee ---
 SCRAPINGBEE_API_KEY = 'N442FF79HZWBD2HQMS4369K1CSS9T9FW0MUIDMNKVJY7IRDB0DOBH25U8LLTHN8LUOYEMCGFQ3BFYGK6'
 
-# --- DICCIONARIOS DE BÚSQUEDA (Sin cambios) ---
 SEARCH_QUERIES = {
     "mecatronica": ["ingeniero mecatronico", "automatizacion", "robotica", "control"],
     "industrial": ["ingeniero industrial", "procesos", "calidad", "supply chain", "logistica"],
@@ -28,7 +25,6 @@ SEARCH_QUERIES = {
     "biotecnologia": ["ingeniero en biotecnologia", "biotecnologo", "investigacion y desarrollo", "laboratorio"]
 }
 
-# --- RUTA DE LA API PARA BUSCAR VACANTES ---
 @app.route('/scrape', methods=['GET'])
 def scrape_jobs():
     career = request.args.get('career')
@@ -46,7 +42,7 @@ def scrape_jobs():
         
         linkedin_url = f"https://www.linkedin.com/jobs/search/?keywords={encoded_search_term}&location={encoded_location}"
         
-        # Parámetros para la API de ScrapingBee
+        # Parámetros para la API 
         payload = {
             'api_key': SCRAPINGBEE_API_KEY, 
             'url': linkedin_url
@@ -54,7 +50,7 @@ def scrape_jobs():
         
         print(f">>> Buscando en LinkedIn a través de ScrapingBee...")
         
-        # --- CAMBIO 2: Nuevo Punto de Conexión (Endpoint) ---
+        #ENDPOINT
         response = requests.get('https://app.scrapingbee.com/api/v1/', params=payload, timeout=90) # Aumentamos el timeout a 90s
         
         response.raise_for_status()
@@ -90,11 +86,12 @@ def scrape_jobs():
         print(f"!!! {error_message}")
         return jsonify({"error": error_message}), 500
 
-# --- INICIAR EL SERVIDOR ---
+# INICIO SERV
 if __name__ == '__main__':
     print("===================================================")
     print(">>> Servidor de Scraping LOCAL (con ScrapingBee) iniciado.")
     print(">>> Escuchando en: http://127.0.0.1:5000")
     print(">>> Presiona CTRL+C para detener el servidor.")
     print("===================================================")
+
     app.run(port=5000)
