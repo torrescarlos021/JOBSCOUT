@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobScout </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #0a66c2, #0077b5); color: white; padding: 4rem 0; text-align: center; }
+        .card { transition: transform 0.2s, box-shadow 0.2s; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.15); }
+        .loader { border: 8px solid #f3f3f3; border-radius: 50%; border-top: 8px solid #0a66c2; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .footer { background-color: #343a40; color: white; padding: 2rem 0; margin-top: 4rem; }
+    </style>
+</head>
+<body>
+    <header class="hero shadow-sm">
+        <div class="container">
+            <h1 class="display-4 fw-bold">JobScout (Versión Local)</h1>
+            <p class="lead">Conectado a servidor.</p>
+        </div>
+    </header>
+    <main class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card p-4">
+                    <h2 class="mb-4 text-center">Encuentra tu próximo empleo</h2>
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="career-select"><i class="bi bi-briefcase-fill"></i></label>
+                        <select class="form-select" id="career-select">
+                            <option selected disabled>Elige una carrera...</option>
+                            <option value="tecnologias_computacionales">Ing. en Tecnologías de la Computación</option>
+                            <option value="mecatronica">Ing. Mecatrónica</option>
+                            <option value="industrial">Ing. Industrial</option>
+                            <option value="civil">Ing. Civil</option>
+                            <option value="mecanica">Ing. Mecánica</option>
+                            <option value="biotecnologia">Ing. en Biotecnología</option>
+                            <option value="finanzas">Finanzas</option>
+                            <option value="administracion">Administración</option>
+                            <option value="transformacion_negocios">Transformación de Negocios</option>
+                            <option value="negocios_internacionales">Negocios Internacionales</option>
+                            <option value="mercadotecnia">Mercadotecnia</option>
+                            <option value="arquitectura">Arquitectura</option>
+                            <option value="derecho">Derecho</option>
+                        </select>
+                    </div>
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="location-input"><i class="bi bi-geo-alt-fill"></i></label>
+                        <input type="text" class="form-control" id="location-input" placeholder="Lugar (ej. Saltillo). Dejar en blanco para todo México.">
+                    </div>
+                    <button class="btn btn-primary w-100 py-2" id="search-button"><i class="bi bi-search"></i> Buscar Vacantes</button>
+                </div>
+            </div>
+        </div>
+        <div id="results-container" class="mt-5"></div>
+    </main>
+    <footer class="footer">
+        <div class="container text-center"><p>&copy; 2025 JobScout. Creado por Carlos Torres.</p></div>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchButton = document.getElementById('search-button');
+            const careerSelect = document.getElementById('career-select');
+            const locationInput = document.getElementById('location-input');
+            const resultsContainer = document.getElementById('results-container');
+            const BACKEND_URL = 'https://mi-job-scraper.onrender.com';
+            searchButton.addEventListener('click', async () => {
+                const selectedCareer = careerSelect.value;
+                const location = locationInput.value.trim();
+                if (selectedCareer === 'Elige una carrera...') {
+                    alert('Por favor, selecciona una carrera para buscar.');
+                    return;
+                }
+                showLoader();
+                try {
+                    const apiUrl = `${BACKEND_URL}/scrape?career=${selectedCareer}&location=${encodeURIComponent(location)}`;
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Error del servidor: ${response.status}`);
+                    }
+                    const jobs = await response.json();
+                    displayResults(jobs, location);
+                } catch (error) {
+                    displayError(error.message);
+                }
+            });
+            function showLoader() { resultsContainer.innerHTML = `<div class="d-flex justify-content-center"><div class="loader"></div></div><p class="text-center mt-3">Contactando servidor local...</p>`; }
+            function displayError(errorMessage) { resultsContainer.innerHTML = `<div class="alert alert-danger text-center" role="alert"><strong>¡Error!</strong><br>${errorMessage}</div>`; }
+            function displayResults(jobs, location) {
+                resultsContainer.innerHTML = '';
+                if (jobs.length === 0) {
+                    resultsContainer.innerHTML = `<div class="alert alert-info text-center" role="alert">No se encontraron vacantes para esta búsqueda.</div>`;
+                    return;
+                }
+                const locationText = location ? `en ${location}` : 'en todo México';
+                const countHeader = document.createElement('h3');
+                countHeader.className = 'text-center mb-4';
+                countHeader.innerHTML = `Se encontraron <span class="badge bg-primary">${jobs.length}</span> vacantes ${locationText}`;
+                resultsContainer.appendChild(countHeader);
+                jobs.forEach(job => {
+                    const card = document.createElement('div');
+                    card.className = 'card mb-3';
+                    card.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title fw-bold">${job.title}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">${job.company}</h6>
+                                    <p class="card-text text-secondary"><i class="bi bi-geo-alt-fill"></i> ${job.location}</p>
+                                </div>
+                                <a href="${job.link}" target="_blank" class="btn btn-outline-primary">Ver Oferta <i class="bi bi-box-arrow-up-right"></i></a>
+                            </div>
+                        </div>`;
+                    resultsContainer.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
