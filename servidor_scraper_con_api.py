@@ -7,7 +7,7 @@ from urllib.parse import quote
 app = Flask(__name__)
 CORS(app)
 
-SCRAPINGBEE_API_KEY = 'N442FF79HZWBD2HQMS4369K1CSS9T9FW0MUIDMNKVJY7IRDB0DOBH25U8LLTHN8LUOYEMCGFQ3BFYGK6'
+SCRAPINGBEE_API_KEY = 'JC8BQRPVNHST3CRSOJF6VC7JYD988IN5IH9724DFV9PVK2Q3CXT39RUVMMTSNV7AGBTIAJ2XE722WLLW'
 
 SEARCH_QUERIES = {
     "mecatronica": ["ingeniero mecatronico", "automatizacion", "robotica", "control"],
@@ -95,3 +95,4 @@ if __name__ == '__main__':
     print("===================================================")
 
     app.run(port=5000)
+
