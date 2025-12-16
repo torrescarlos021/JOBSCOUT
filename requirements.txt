@@ -1,0 +1,5 @@
+# JobScout v4.0 - Production Dependencies
+flask==3.0.0
+flask-cors==4.0.0
+playwright==1.40.0
+gunicorn==21.2.0

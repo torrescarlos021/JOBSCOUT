@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobScout • Buscador de Empleo Multi-Plataforma</title>
+    <meta name="description" content="Busca vacantes en LinkedIn, Indeed y más desde un solo lugar">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #18181b;
+            --bg-elevated: #1f1f23;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --gradient-primary: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            --gradient-glow: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.3), transparent);
+            --glass-bg: rgba(24, 24, 27, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 60px rgba(59, 130, 246, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-noise {
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03; pointer-events: none; z-index: 0;
+        }
+        .bg-gradient { position: fixed; inset: 0; background: var(--gradient-glow); pointer-events: none; z-index: 0; }
+        .bg-grid {
+            position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+
+        .hero {
+            position: relative; min-height: 50vh;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .hero-image {
+            position: absolute; inset: 0;
+            background-size: cover; background-position: center;
+            transition: opacity 0.8s ease, transform 1.2s ease; transform: scale(1.05);
+        }
+        .hero-image.loaded { transform: scale(1); }
+        .hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(10,10,11,0.4) 0%, rgba(10,10,11,0.7) 50%, rgba(10,10,11,1) 100%);
+        }
+        .hero-content { position: relative; z-index: 10; text-align: center; padding: 2rem; max-width: 900px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 50px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);
+            margin-bottom: 1.5rem; backdrop-filter: blur(12px); animation: fadeInUp 0.6s ease forwards;
+        }
+        .hero-badge .dot { width: 8px; height: 8px; background: var(--accent-emerald); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            animation: fadeInUp 0.6s ease forwards; animation-delay: 0.1s; opacity: 0;
+        }
+        .hero-subtitle {
+            font-size: 1.25rem; color: var(--text-secondary); font-weight: 400; max-width: 500px; margin: 0 auto;
+            animation: fadeInUp 0.6s ease forwards; animation-delay: 0.2s; opacity: 0;
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container { position: relative; z-index: 10; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+        .search-panel {
+            position: relative; margin-top: -80px;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 2rem;
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+            animation: fadeInUp 0.6s ease forwards; animation-delay: 0.3s; opacity: 0;
+        }
+        .search-panel::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 60%; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+        }
+        .search-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; align-items: end; }
+        @media (max-width: 900px) { .search-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .search-grid { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+        .form-select, .form-input {
+            width: 100%; padding: 14px 16px; font-family: inherit; font-size: 0.95rem; font-weight: 500;
+            color: var(--text-primary); background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+            outline: none; transition: var(--transition-base); cursor: pointer; appearance: none;
+        }
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a1a1aa' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 16px center; padding-right: 44px;
+        }
+        .form-select:hover, .form-input:hover { border-color: rgba(255,255,255,0.15); background: var(--bg-elevated); }
+        .form-select:focus, .form-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+        .form-select option { background: var(--bg-secondary); color: var(--text-primary); }
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .btn-search {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 14px 24px; font-family: inherit; font-size: 0.95rem; font-weight: 600;
+            color: white; background: var(--gradient-primary); border: none; border-radius: var(--radius-md);
+            cursor: pointer; transition: var(--transition-base); position: relative; overflow: hidden;
+        }
+        .btn-search::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            opacity: 0; transition: var(--transition-base);
+        }
+        .btn-search:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.4); }
+        .btn-search:hover::before { opacity: 1; }
+        .btn-search:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-search .spinner {
+            width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .stats-bar {
+            display: flex; align-items: center; justify-content: center; gap: 2rem;
+            padding: 1.5rem 0; margin-top: 1.5rem; border-top: 1px solid var(--glass-border); flex-wrap: wrap;
+        }
+        .stat-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
+        .stat-item i { font-size: 1rem; color: var(--accent-blue); }
+        .stat-value { font-weight: 600; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+
+        .results-section { padding: 3rem 0 5rem; }
+        .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .results-title { font-size: 1.5rem; font-weight: 700; }
+        .results-count {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text-secondary);
+            padding: 6px 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm);
+        }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-icon { font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem; opacity: 0.5; }
+        .empty-title { font-size: 1.25rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .empty-subtitle { font-size: 0.95rem; color: var(--text-muted); }
+
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; gap: 1.5rem; }
+        .loading-spinner { width: 48px; height: 48px; border: 3px solid var(--bg-elevated); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        .loading-text { font-size: 1rem; color: var(--text-secondary); }
+        .loading-sources { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .loading-source {
+            display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+            background: var(--bg-tertiary); border-radius: var(--radius-sm);
+            font-size: 0.8rem; color: var(--text-muted); animation: pulse 2s infinite;
+        }
+        .loading-source.active { color: var(--accent-emerald); background: rgba(16,185,129,0.1); }
+
+        .job-card {
+            position: relative; background: var(--bg-secondary); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg); padding: 1.5rem; transition: var(--transition-base);
+            display: flex; flex-direction: column; gap: 1rem;
+            animation: cardFadeIn 0.5s ease forwards; opacity: 0;
+        }
+        .job-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.12); box-shadow: var(--shadow-lg); }
+        .job-card::before {
+            content: ''; position: absolute; inset: 0; border-radius: var(--radius-lg); padding: 1px;
+            background: linear-gradient(135deg, transparent 40%, var(--accent-blue) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: var(--transition-base);
+        }
+        .job-card:hover::before { opacity: 1; }
+        @keyframes cardFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .job-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+        .job-source {
+            display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+            border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+        }
+        .job-source.linkedin { background: rgba(0,119,181,0.15); color: #0077b5; }
+        .job-source.indeed { background: rgba(37,87,167,0.15); color: #2557a7; }
+        .job-source.occ { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+        .job-source.computrabajo { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
+
+        .job-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .job-company { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--text-secondary); }
+        .job-company i { font-size: 0.9rem; color: var(--text-muted); }
+        .job-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--glass-border); }
+        .job-location { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+        .job-location i { color: var(--accent-rose); }
+        .btn-apply {
+            display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+            font-family: inherit; font-size: 0.85rem; font-weight: 600;
+            color: var(--accent-blue); background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius-sm);
+            text-decoration: none; transition: var(--transition-base);
+        }
+        .btn-apply:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+        .footer { text-align: center; padding: 2rem; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.85rem; }
+
+        .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.75rem; }
+        .toast {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            background: var(--bg-elevated); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md); box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease forwards;
+        }
+        .toast.error { border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.1); }
+        .toast.success { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.1); }
+        .toast-icon { font-size: 1.2rem; }
+        .toast.error .toast-icon { color: var(--accent-rose); }
+        .toast.success .toast-icon { color: var(--accent-emerald); }
+        .toast-message { font-size: 0.9rem; color: var(--text-primary); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); } }
+
+        @media (max-width: 768px) {
+            .hero { min-height: 45vh; }
+            .search-panel { margin-top: -60px; padding: 1.5rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .toast-container { left: 1rem; right: 1rem; bottom: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-noise"></div>
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <section class="hero">
+        <div class="hero-image" id="heroImage"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-badge"><span class="dot"></span>Multi-Plataforma • Tiempo Real</div>
+            <h1 class="hero-title">JobScout</h1>
+            <p class="hero-subtitle">Busca vacantes en LinkedIn e Indeed desde un solo lugar</p>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="search-panel">
+            <div class="search-grid">
+                <div class="form-group">
+                    <label class="form-label">Área / Carrera</label>
+                    <select class="form-select" id="careerSelect">
+                        <option value="" disabled selected>Selecciona tu área</option>
+                        <optgroup label="🔧 Ingenierías">
+                            <option value="mecatronica">🤖 Ing. Mecatrónica</option>
+                            <option value="industrial">🏭 Ing. Industrial</option>
+                            <option value="mecanica">⚙️ Ing. Mecánica</option>
+                            <option value="tecnologias_computacionales">💻 Ing. Software / Sistemas</option>
+                            <option value="civil">🏗️ Ing. Civil</option>
+                            <option value="biotecnologia">🧬 Ing. Biotecnología</option>
+                        </optgroup>
+                        <optgroup label="💼 Negocios">
+                            <option value="finanzas">📊 Finanzas</option>
+                            <option value="administracion">📋 Administración</option>
+                            <option value="transformacion_negocios">🚀 Transformación de Negocios</option>
+                            <option value="negocios_internacionales">🌎 Negocios Internacionales</option>
+                            <option value="mercadotecnia">📱 Mercadotecnia</option>
+                        </optgroup>
+                        <optgroup label="🎨 Otras">
+                            <option value="arquitectura">🏛️ Arquitectura</option>
+                            <option value="derecho">⚖️ Derecho</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Experiencia</label>
+                    <select class="form-select" id="experienceSelect">
+                        <option value="ambos">Todas las vacantes</option>
+                        <option value="practicas">Solo Prácticas / Becario</option>
+                        <option value="recien_egresado">Recién Egresado / Jr</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ubicación</label>
+                    <input type="text" class="form-input" id="locationInput" placeholder="Ej. Ciudad de México">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn-search" id="searchBtn"><i class="bi bi-search"></i><span>Buscar</span></button>
+                </div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item"><i class="bi bi-lightning-charge-fill"></i><span><span class="stat-value">2</span> fuentes</span></div>
+                <div class="stat-item"><i class="bi bi-clock-history"></i><span>~<span class="stat-value" id="avgTime">15</span>s</span></div>
+                <div class="stat-item"><i class="bi bi-shield-check"></i><span>Sin registro</span></div>
+            </div>
+        </div>
+
+        <section class="results-section">
+            <div id="resultsContainer">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-briefcase"></i></div>
+                    <h3 class="empty-title">¿Listo para encontrar tu próximo empleo?</h3>
+                    <p class="empty-subtitle">Selecciona tu área de interés y comienza a buscar</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer"><p>Hecho con ☕ • JobScout © 2025</p></footer>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const CONFIG = {
+            // En producción, usar ruta relativa (mismo servidor)
+            API_URL: window.location.origin + '/api',
+            CAREER_IMAGES: {
+                'mecatronica': 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1920&q=80',
+                'industrial': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&q=80',
+                'mecanica': 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=1920&q=80',
+                'tecnologias_computacionales': 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1920&q=80',
+                'civil': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&q=80',
+                'biotecnologia': 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=80',
+                'finanzas': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1920&q=80',
+                'administracion': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80',
+                'transformacion_negocios': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&q=80',
+                'negocios_internacionales': 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=1920&q=80',
+                'mercadotecnia': 'https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=1920&q=80',
+                'arquitectura': 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&q=80',
+                'derecho': 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1920&q=80',
+                'default': 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1920&q=80'
+            }
+        };
+
+        const $ = id => document.getElementById(id);
+        const careerSelect = $('careerSelect'), experienceSelect = $('experienceSelect');
+        const locationInput = $('locationInput'), searchBtn = $('searchBtn');
+        const resultsContainer = $('resultsContainer'), heroImage = $('heroImage'), toastContainer = $('toastContainer');
+
+        function showToast(msg, type = 'error') {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i class="bi ${type === 'error' ? 'bi-exclamation-circle' : 'bi-check-circle'} toast-icon"></i><span class="toast-message">${msg}</span>`;
+            toastContainer.appendChild(t);
+            setTimeout(() => { t.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 4000);
+        }
+
+        function setHeroImage(career) {
+            heroImage.style.backgroundImage = `url('${CONFIG.CAREER_IMAGES[career] || CONFIG.CAREER_IMAGES['default']}')`;
+            heroImage.classList.add('loaded');
+        }
+
+        function getSourceClass(s) { return { 'LinkedIn': 'linkedin', 'Indeed': 'indeed', 'OCC Mundial': 'occ', 'Computrabajo': 'computrabajo' }[s] || ''; }
+        function getSourceIcon(s) { return { 'LinkedIn': 'bi-linkedin', 'Indeed': 'bi-search', 'OCC Mundial': 'bi-building', 'Computrabajo': 'bi-pc-display' }[s] || 'bi-briefcase'; }
+
+        function renderLoading() {
+            resultsContainer.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Escaneando portales de empleo...</p>
+                    <div class="loading-sources">
+                        <span class="loading-source active"><i class="bi bi-linkedin"></i> LinkedIn</span>
+                        <span class="loading-source"><i class="bi bi-search"></i> Indeed</span>
+                    </div>
+                </div>`;
+            const sources = document.querySelectorAll('.loading-source');
+            let idx = 0;
+            return setInterval(() => { sources.forEach(s => s.classList.remove('active')); sources[idx].classList.add('active'); idx = (idx + 1) % sources.length; }, 800);
+        }
+
+        function renderResults(jobs) {
+            if (!jobs?.length) {
+                resultsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><h3 class="empty-title">No se encontraron vacantes</h3><p class="empty-subtitle">Intenta ajustar los filtros</p></div>`;
+                return;
+            }
+            resultsContainer.innerHTML = `
+                <div class="results-header"><h2 class="results-title">Vacantes Encontradas</h2><span class="results-count">${jobs.length} resultados</span></div>
+                <div class="results-grid">${jobs.map((j, i) => `
+                    <div class="job-card" style="animation-delay:${i * 0.05}s">
+                        <div class="job-header"><span class="job-source ${getSourceClass(j.source)}"><i class="bi ${getSourceIcon(j.source)}"></i>${j.source}</span></div>
+                        <h3 class="job-title">${j.title}</h3>
+                        <div class="job-company"><i class="bi bi-building"></i>${j.company}</div>
+                        <div class="job-footer">
+                            <span class="job-location"><i class="bi bi-geo-alt-fill"></i>${j.location}</span>
+                            <a href="${j.link}" target="_blank" rel="noopener" class="btn-apply">Aplicar<i class="bi bi-arrow-up-right"></i></a>
+                        </div>
+                    </div>`).join('')}</div>`;
+        }
+
+        async function searchJobs() {
+            const career = careerSelect.value, exp = experienceSelect.value, loc = locationInput.value.trim() || 'México';
+            if (!career) { showToast('Selecciona un área'); careerSelect.focus(); return; }
+
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = `<div class="spinner"></div><span>Buscando...</span>`;
+            const loadingInt = renderLoading();
+            const start = Date.now();
+
+            try {
+                const res = await fetch(`${CONFIG.API_URL}/scrape?career=${career}&location=${encodeURIComponent(loc)}&experience=${exp}`);
+                clearInterval(loadingInt);
+                if (!res.ok) throw new Error(`Error: ${res.status}`);
+                const data = await res.json();
+                
+                if (data.error) { resultsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3 class="empty-title">Error</h3><p class="empty-subtitle">${data.error}</p></div>`; showToast(data.error); }
+                else {
+                    const jobs = data.jobs || data;
+                    renderResults(jobs);
+                    if (jobs.length) {
+                        const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+                        showToast(`¡${jobs.length} vacantes en ${elapsed}s!`, 'success');
+                        $('avgTime').textContent = elapsed;
+                    }
+                }
+            } catch (e) {
+                clearInterval(loadingInt);
+                resultsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-wifi-off"></i></div><h3 class="empty-title">Error de conexión</h3><p class="empty-subtitle">No se pudo conectar al servidor</p></div>`;
+                showToast('Error de conexión');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = `<i class="bi bi-search"></i><span>Buscar</span>`;
+            }
+        }
+
+        careerSelect.addEventListener('change', () => setHeroImage(careerSelect.value));
+        searchBtn.addEventListener('click', searchJobs);
+        locationInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchJobs(); });
+        setHeroImage('default');
+    </script>
+</body>
+</html>
