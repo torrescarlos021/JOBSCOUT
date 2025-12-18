@@ -183,6 +183,7 @@
         }
         .loading-source.active { color: var(--accent-emerald); background: rgba(16,185,129,0.1); }
 
+        /* Job Cards */
         .job-card {
             position: relative; background: var(--bg-secondary); border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg); padding: 1.5rem; transition: var(--transition-base);
@@ -190,14 +191,6 @@
             animation: cardFadeIn 0.5s ease forwards; opacity: 0;
         }
         .job-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.12); box-shadow: var(--shadow-lg); }
-        .job-card::before {
-            content: ''; position: absolute; inset: 0; border-radius: var(--radius-lg); padding: 1px;
-            background: linear-gradient(135deg, transparent 40%, var(--accent-blue) 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: var(--transition-base);
-        }
-        .job-card:hover::before { opacity: 1; }
         @keyframes cardFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .job-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
@@ -208,23 +201,40 @@
         }
         .job-source.linkedin { background: rgba(0,119,181,0.15); color: #0077b5; }
         .job-source.indeed { background: rgba(37,87,167,0.15); color: #2557a7; }
-        .job-source.occ { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
-        .job-source.computrabajo { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
 
         .job-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .job-company { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--text-secondary); }
         .job-company i { font-size: 0.9rem; color: var(--text-muted); }
+        
         .job-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--glass-border); }
         .job-location { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
         .job-location i { color: var(--accent-rose); }
+
+        /* BOTON APLICAR - CORREGIDO */
         .btn-apply {
-            display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
-            font-family: inherit; font-size: 0.85rem; font-weight: 600;
-            color: var(--accent-blue); background: rgba(59,130,246,0.1);
-            border: 1px solid rgba(59,130,246,0.3); border-radius: var(--radius-sm);
-            text-decoration: none; transition: var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition-base);
         }
-        .btn-apply:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+        .btn-apply:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        .btn-apply i {
+            font-size: 0.9rem;
+        }
 
         .footer { text-align: center; padding: 2rem; border-top: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.85rem; }
 
@@ -334,20 +344,19 @@
 
     <script>
         const CONFIG = {
-            // En producción, usar ruta relativa (mismo servidor)
             API_URL: window.location.origin + '/api',
             CAREER_IMAGES: {
                 'mecatronica': 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1920&q=80',
-                'industrial': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&q=80',
+                'industrial': 'https://www.univas.com.mx/es/wp-content/uploads/2025/08/persona-que-usa-herramienta-ai-trabajo_23-2150711507.jpg',
                 'mecanica': 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=1920&q=80',
                 'tecnologias_computacionales': 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1920&q=80',
                 'civil': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&q=80',
                 'biotecnologia': 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=80',
                 'finanzas': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1920&q=80',
-                'administracion': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80',
+                'administracion': 'https://institutobancario.edu.mx/wp-content/uploads/2021/03/administracion-de-empresas-gestion.jpg',
                 'transformacion_negocios': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&q=80',
-                'negocios_internacionales': 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=1920&q=80',
-                'mercadotecnia': 'https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=1920&q=80',
+                'negocios_internacionales': 'https://anave.es/wp-content/uploads/2024/08/panama-neopanamax.png',
+                'mercadotecnia': 'https://publify.co/wp-content/uploads/2022/11/BLOG_mkt-nas-redes-sociais-1.png',
                 'arquitectura': 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&q=80',
                 'derecho': 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1920&q=80',
                 'default': 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1920&q=80'
@@ -372,8 +381,8 @@
             heroImage.classList.add('loaded');
         }
 
-        function getSourceClass(s) { return { 'LinkedIn': 'linkedin', 'Indeed': 'indeed', 'OCC Mundial': 'occ', 'Computrabajo': 'computrabajo' }[s] || ''; }
-        function getSourceIcon(s) { return { 'LinkedIn': 'bi-linkedin', 'Indeed': 'bi-search', 'OCC Mundial': 'bi-building', 'Computrabajo': 'bi-pc-display' }[s] || 'bi-briefcase'; }
+        function getSourceClass(s) { return { 'LinkedIn': 'linkedin', 'Indeed': 'indeed' }[s] || ''; }
+        function getSourceIcon(s) { return { 'LinkedIn': 'bi-linkedin', 'Indeed': 'bi-search' }[s] || 'bi-briefcase'; }
 
         function renderLoading() {
             resultsContainer.innerHTML = `
@@ -399,12 +408,14 @@
                 <div class="results-header"><h2 class="results-title">Vacantes Encontradas</h2><span class="results-count">${jobs.length} resultados</span></div>
                 <div class="results-grid">${jobs.map((j, i) => `
                     <div class="job-card" style="animation-delay:${i * 0.05}s">
-                        <div class="job-header"><span class="job-source ${getSourceClass(j.source)}"><i class="bi ${getSourceIcon(j.source)}"></i>${j.source}</span></div>
+                        <div class="job-header"><span class="job-source ${getSourceClass(j.source)}"><i class="bi ${getSourceIcon(j.source)}"></i> ${j.source}</span></div>
                         <h3 class="job-title">${j.title}</h3>
-                        <div class="job-company"><i class="bi bi-building"></i>${j.company}</div>
+                        <div class="job-company"><i class="bi bi-building"></i> ${j.company}</div>
                         <div class="job-footer">
-                            <span class="job-location"><i class="bi bi-geo-alt-fill"></i>${j.location}</span>
-                            <a href="${j.link}" target="_blank" rel="noopener" class="btn-apply">Aplicar<i class="bi bi-arrow-up-right"></i></a>
+                            <span class="job-location"><i class="bi bi-geo-alt-fill"></i> ${j.location}</span>
+                            <a href="${j.link}" target="_blank" rel="noopener noreferrer" class="btn-apply">
+                                Aplicar <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
                         </div>
                     </div>`).join('')}</div>`;
         }
@@ -424,8 +435,10 @@
                 if (!res.ok) throw new Error(`Error: ${res.status}`);
                 const data = await res.json();
                 
-                if (data.error) { resultsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3 class="empty-title">Error</h3><p class="empty-subtitle">${data.error}</p></div>`; showToast(data.error); }
-                else {
+                if (data.error) { 
+                    resultsContainer.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3 class="empty-title">Error</h3><p class="empty-subtitle">${data.error}</p></div>`; 
+                    showToast(data.error); 
+                } else {
                     const jobs = data.jobs || data;
                     renderResults(jobs);
                     if (jobs.length) {
